@@ -1,0 +1,61 @@
+#define ADC_VREF_mV    5000.0 // in millivolt
+#define ADC_RESOLUTION 1024.0
+#define PIN_temp       A1
+#define PIN_light       A2
+#define PIN_moisture       A5
+#include <AFMotor.h>
+
+int thresholdValue = 800;
+
+AF_DCMotor motor(2);
+
+void setup(){
+  
+  pinMode(PIN_moisture, INPUT);
+  Serial.begin(9600);
+  motor.setSpeed(150);
+  motor.run(RELEASE);
+}
+
+void loop() {
+  //read temperature
+  int adcVal = analogRead(PIN_temp);
+  float milliVolt = adcVal * (ADC_VREF_mV / ADC_RESOLUTION);
+   float tempC = milliVolt / 10;
+  Serial.print("Temperature: ");
+  Serial.print(tempC); 
+  Serial.println("°C");
+Serial.println(adcVal);
+ //delay(1000);
+ 
+ //read light
+ int lightValue = analogRead(PIN_light);
+ Serial.print("lightValue: ");
+ Serial.println(lightValue);
+
+ //read moisture
+ int moistureValue = analogRead(PIN_moisture);
+ Serial.print("moistureValue: ");
+  Serial.println(moistureValue);
+  
+ 
+ if (lightValue > 160 && lightValue<310 && temp>18 && tempC<25 && moistureValue>550 && moistureValue<870 )
+ {
+    motor.run(FORWARD); 
+    Serial.println(" - Dark");
+    delay(3000);
+  } else {
+     motor.run(RELEASE);
+    Serial.println(" - Very bright");
+    delay(3000);
+  
+  }
+
+ 
+  //delay(500);
+}
+
+
+
+
+  

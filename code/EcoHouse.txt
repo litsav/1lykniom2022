@@ -1,0 +1,89 @@
+
+#define ADC_VREF_mV    5000.0 // in millivolt
+#define ADC_RESOLUTION 1024.0
+#define PIN_light     A1
+#define PIN_temp     A2
+
+#include <LiquidCrystal_I2C.h>
+
+#include <AFMotor.h>
+
+AF_DCMotor motor1(1);
+int anoixto=0;
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x3F, 16 column and 2 rows
+
+unsigned long lastCount = 0;
+
+void setup() {
+  Serial.begin(9600);
+
+  lcd.init(); // initialize the lcd
+  lcd.backlight(); // open the backlight
+  motor1.setSpeed(255);
+  motor1.run(RELEASE);
+
+}
+
+void loop() {
+  lcd.clear();
+  lcd.setCursor(0, 0); // start to print at the first row
+  delay(1000);
+  int adcVal = analogRead(PIN_temp);
+  float milliVolt = adcVal * (ADC_VREF_mV / ADC_RESOLUTION);
+  float tempC = milliVolt / 10;
+
+  Serial.print("  Temperature  ");
+  Serial.print(tempC);   
+  Serial.print("°C");
+
+
+ 
+  lcd.setCursor(0, 0); 
+  lcd.println("Temp: ");
+  lcd.print(tempC);   
+  lcd.println(" C");
+
+
+ lcd.setCursor(0, 1);
+ int lightValue = analogRead(PIN_light);
+
+  Serial.println("Analog reading: ");
+  Serial.println(lightValue);   
+
+  lcd.print("Light: ");
+  lcd.print(lightValue);   
+  
+  if (lightValue < 30) {
+    //open the stores It is night
+      if (anoixto==0)//den einai anoixto. prepei na anoi
+      {
+        motor1.run(FORWARD);
+        delay(850);
+        motor1.run(RELEASE);
+        anoixto=1;
+      }
+  } else if (lightValue >=30 && tempC>25){
+    //close stores Its day and hot
+    if (anoixto==1)//einai anoixto. prepei na kleisei
+      {
+      motor1.run(BACKWARD);
+      delay(850);
+      motor1.run(RELEASE);
+      anoixto=0;
+      }
+  }
+  else  
+  {
+    //open stores Its is day and cold
+      if (anoixto==0)//den einai anoixto. prepei na anoi
+      {
+        motor1.run(FORWARD);
+        delay(850);
+        motor1.run(RELEASE);
+        anoixto=1;
+      }
+  }
+delay(3000);
+}
